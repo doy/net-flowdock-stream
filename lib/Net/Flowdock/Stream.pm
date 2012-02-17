@@ -35,6 +35,12 @@ has socket_timeout => (
     default => 0.01,
 );
 
+has debug => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => 0,
+);
+
 has _socket => (
     is  => 'rw',
     isa => 'Net::HTTPS::NB',
@@ -135,6 +141,7 @@ sub _process_readbuf {
     if ((my $buf = $self->_readbuf) =~ s/^([^\x0d]*)\x0d//) {
         my $chunk = $1;
         $self->_readbuf($buf);
+        warn "New event:\n$chunk" if $self->debug;
         return decode_json($chunk);
     }
 
