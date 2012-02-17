@@ -1,24 +1,75 @@
 package Net::Flowdock::Stream;
 use Moose;
+# ABSTRACT: Streaming API for Flowdock
 
 use JSON;
 use MIME::Base64;
 use Net::HTTPS::NB;
+
+=head1 SYNOPSIS
+
+  my $stream = Net::Flowdock::Stream->new(
+      token => '...',
+      flows => ['myorg/testing'],
+  );
+
+  while (1) {
+      if (my $event = $stream->get_next_event) {
+          process_event($event);
+      }
+  }
+
+=head1 DESCRIPTION
+
+This module implements the streaming api for
+L<Flowdock|https://www.flowdock.com/>. It provides a non-blocking method which
+you can call to get the next available event in the stream. You can then
+integrate this method into your existing event-driven app.
+
+=cut
+
+=attr token
+
+Your account's API token, for authentication. Required unless C<email> and
+C<password> are provided.
+
+=cut
 
 has token => (
     is  => 'ro',
     isa => 'Str',
 );
 
+=attr email
+
+Your account's email address, for authentication. Required unless C<token> is
+provided.
+
+=cut
+
 has email => (
     is  => 'ro',
     isa => 'Str',
 );
 
+=attr password
+
+Your account's password, for authentication. Required unless C<token> is
+provided.
+
+=cut
+
 has password => (
     is  => 'ro',
     isa => 'Str',
 );
+
+=attr flows
+
+An arrayref of flows that should be listened to for events. Note that the flow
+names must include the organization, so C<myorg/testing>, not just C<testing>.
+
+=cut
 
 has flows => (
     traits   => ['Array'],
@@ -91,6 +142,13 @@ sub BUILD {
     $self->_socket($s);
 }
 
+=method get_next_event
+
+Returns the next event that has been received in the stream. This call is
+nonblocking, and will return undef if no events are currently available.
+
+=cut
+
 sub get_next_event {
     my $self = shift;
 
@@ -150,5 +208,53 @@ sub _process_readbuf {
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
+
+=head1 BUGS
+
+No known bugs.
+
+Please report any bugs through RT: email
+C<bug-net-flowdock-stream at rt.cpan.org>, or browse to
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-Flowdock-Stream>.
+
+=head1 SEE ALSO
+
+L<https://www.flowdock.com/>
+
+=head1 SUPPORT
+
+You can find this documentation for this module with the perldoc command.
+
+    perldoc Net::Flowdock::Stream
+
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Net-Flowdock-Stream>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Net-Flowdock-Stream>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-Flowdock-Stream>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Net-Flowdock-Stream>
+
+=back
+
+=begin Pod::Coverage
+
+BUILD
+
+=end Pod::Coverage
+
+=cut
 
 1;
